@@ -431,17 +431,25 @@ function LoginForm({
         </button>
       </form>
 
+      <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-center">
+        <p className="text-sm font-medium text-slate-200">New card to activate?</p>
+        <p className="mt-1 text-xs text-slate-500">
+          Start a fresh activation if this isn't your card.
+        </p>
+        <button
+          type="button"
+          onClick={startNewActivation}
+          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+        >
+          <RefreshCcw className="h-4 w-4" />
+          Start a new activation
+        </button>
+      </div>
+
       <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500">
         <ShieldCheck className="h-3 w-3 text-emerald-400" />
         Your session is protected end-to-end
       </p>
-
-      <div className="mt-auto pt-8 text-center text-xs text-slate-500">
-        Not your card?{" "}
-        <Link to="/" className="font-medium text-indigo-300 hover:text-indigo-200">
-          Start a new activation
-        </Link>
-      </div>
     </section>
   );
 }
