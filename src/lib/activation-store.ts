@@ -5,6 +5,7 @@ export type ActivationStatus = "idle" | "processing" | "activated";
 
 const KEY = "card-activation-status";
 const CARD_KEY = "card-activation-details";
+const SESSION_KEY = "card-session-active";
 const EVENT = "card-activation-change";
 
 export interface StoredCard {
@@ -48,6 +49,7 @@ export function getCard(): StoredCard | null {
 export function setCard(card: StoredCard) {
   if (typeof window === "undefined") return;
   localStorage.setItem(CARD_KEY, JSON.stringify(card));
+  localStorage.setItem(SESSION_KEY, "1");
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
@@ -55,7 +57,30 @@ export function clearActivation() {
   if (typeof window === "undefined") return;
   localStorage.removeItem(KEY);
   localStorage.removeItem(CARD_KEY);
+  localStorage.removeItem(SESSION_KEY);
   window.dispatchEvent(new CustomEvent(EVENT));
+}
+
+export function isLoggedIn(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(SESSION_KEY) === "1";
+}
+
+export function logout() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(SESSION_KEY);
+  window.dispatchEvent(new CustomEvent(EVENT));
+}
+
+export function loginWithCardNumber(cardNumber: string): boolean {
+  if (typeof window === "undefined") return false;
+  const card = getCard();
+  if (!card) return false;
+  const normalize = (s: string) => s.replace(/\s+/g, "");
+  if (normalize(card.cardNumber) !== normalize(cardNumber)) return false;
+  localStorage.setItem(SESSION_KEY, "1");
+  window.dispatchEvent(new CustomEvent(EVENT));
+  return true;
 }
 
 export function subscribe(cb: () => void): () => void {
