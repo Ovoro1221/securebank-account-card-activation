@@ -146,7 +146,7 @@ function LoginForm() {
 
         <p className="flex items-center justify-center gap-1.5 pt-2 text-xs text-slate-500">
           <Lock className="h-3 w-3" />
-          Demo credentials — admin / admin123
+          Restricted access — authorized admins only
         </p>
       </form>
     </section>
