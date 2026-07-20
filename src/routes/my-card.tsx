@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
 import {
   ChevronLeft,
@@ -11,6 +11,7 @@ import {
   LogOut,
   LogIn,
   Lock,
+  RefreshCcw,
 } from "lucide-react";
 import {
   getCard,
@@ -19,6 +20,7 @@ import {
   isLoggedIn,
   logout,
   loginWithCardNumber,
+  clearActivation,
   type ActivationStatus,
   type StoredCard,
 } from "@/lib/activation-store";
