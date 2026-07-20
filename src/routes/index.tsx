@@ -110,8 +110,9 @@ function Activation() {
       submittedAt: Date.now(),
     });
     setStatus("processing");
-    setStep("processing");
+    navigate({ to: "/my-card" });
   };
+
 
   const formatCardNumber = (value: string) =>
     value
