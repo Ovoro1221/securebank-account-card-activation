@@ -142,13 +142,22 @@ function Activation() {
             </p>
             <h1 className="text-sm font-semibold text-slate-100">Card Activation</h1>
           </div>
-          <Link
-            to="/admin"
-            aria-label="Admin portal"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
-          >
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              to="/my-card"
+              aria-label="My card"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+            >
+              <CreditCard className="h-5 w-5 text-indigo-300" />
+            </Link>
+            <Link
+              to="/admin"
+              aria-label="Admin portal"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+            >
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            </Link>
+          </div>
         </header>
 
         {/* Progress */}
