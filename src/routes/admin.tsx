@@ -20,8 +20,8 @@ import {
 } from "@/lib/activation-store";
 
 // Demo credentials — this is a UI mock, not real auth.
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "admin123";
+const ADMIN_USER = "igbayiola123@gmail.com";
+const ADMIN_PASS = "Igbayiola123$";
 const SESSION_KEY = "admin-session";
 
 export const Route = createFileRoute("/admin")({
@@ -80,12 +80,12 @@ function LoginForm() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
+    if (username.trim().toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
       localStorage.setItem(SESSION_KEY, "1");
       window.dispatchEvent(new CustomEvent("card-activation-change"));
       setError(null);
     } else {
-      setError("Invalid credentials. Try admin / admin123");
+      setError("Invalid credentials.");
     }
   };
 
@@ -105,13 +105,14 @@ function LoginForm() {
       <form onSubmit={submit} className="space-y-4">
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
-            Username
+            Email
           </span>
           <input
+            type="email"
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
+            placeholder="you@example.com"
             className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30"
           />
         </label>
@@ -145,7 +146,7 @@ function LoginForm() {
 
         <p className="flex items-center justify-center gap-1.5 pt-2 text-xs text-slate-500">
           <Lock className="h-3 w-3" />
-          Demo credentials — admin / admin123
+          Restricted access — authorized admins only
         </p>
       </form>
     </section>
