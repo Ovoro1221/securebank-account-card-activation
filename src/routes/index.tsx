@@ -142,13 +142,22 @@ function Activation() {
             </p>
             <h1 className="text-sm font-semibold text-slate-100">Card Activation</h1>
           </div>
-          <Link
-            to="/admin"
-            aria-label="Admin portal"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
-          >
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              to="/my-card"
+              aria-label="My card"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+            >
+              <CreditCard className="h-5 w-5 text-indigo-300" />
+            </Link>
+            <Link
+              to="/admin"
+              aria-label="Admin portal"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+            >
+              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+            </Link>
+          </div>
         </header>
 
         {/* Progress */}
@@ -406,7 +415,15 @@ function ProcessingView() {
           <ProgressRow label="Card activated" status="done" />
         </div>
 
-        <p className="mt-8 flex items-center gap-1.5 text-xs text-slate-500">
+        <Link
+          to="/my-card"
+          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 transition active:scale-[0.98]"
+        >
+          <CreditCard className="h-4 w-4" />
+          View my card
+        </Link>
+
+        <p className="mt-6 flex items-center gap-1.5 text-xs text-slate-500">
           <ShieldCheck className="h-3 w-3 text-emerald-400" />
           You're all set — enjoy your new card
         </p>
@@ -438,9 +455,17 @@ function ProcessingView() {
         <ProgressRow label="Card activated" status="pending" />
       </div>
 
-      <p className="mt-8 flex items-center gap-1.5 text-xs text-slate-500">
+      <Link
+        to="/my-card"
+        className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+      >
+        <CreditCard className="h-4 w-4" />
+        Tap my card to check status
+      </Link>
+
+      <p className="mt-6 flex items-center gap-1.5 text-xs text-slate-500">
         <Lock className="h-3 w-3" />
-        Secure connection • Do not close this window
+        Secure connection
       </p>
     </div>
   );
