@@ -318,6 +318,7 @@ function LoginForm({
   last4: string;
   cardholder?: string;
 }) {
+  const navigate = useNavigate();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -346,6 +347,11 @@ function LoginForm({
         setError("That card number doesn't match our records.");
       }
     }, 500);
+  };
+
+  const startNewActivation = () => {
+    clearActivation();
+    navigate({ to: "/" });
   };
 
   return (
