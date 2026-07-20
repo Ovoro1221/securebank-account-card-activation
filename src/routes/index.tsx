@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import { CreditCard, Lock, ShieldCheck, Loader2, ChevronLeft, CheckCircle2 } from "lucide-react";
 import {
