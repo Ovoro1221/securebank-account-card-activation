@@ -213,9 +213,6 @@ function MyCard() {
                         <p className="mt-3 text-lg font-semibold">
                           Awaiting Activation
                         </p>
-                        <p className="mt-1 text-xs opacity-80">
-                          An admin is confirming your card
-                        </p>
                       </>
                     )}
                   </div>
