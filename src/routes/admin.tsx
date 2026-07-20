@@ -80,12 +80,12 @@ function LoginForm() {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    if (username.trim() === ADMIN_USER && password === ADMIN_PASS) {
+    if (username.trim().toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
       localStorage.setItem(SESSION_KEY, "1");
       window.dispatchEvent(new CustomEvent("card-activation-change"));
       setError(null);
     } else {
-      setError("Invalid credentials. Try admin / admin123");
+      setError("Invalid credentials.");
     }
   };
 
