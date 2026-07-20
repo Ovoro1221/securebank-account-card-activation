@@ -21,7 +21,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Activate Your Debit Card — SecureBank" },
       {
         property: "og:description",
-        content: "Secure, guided activation for your new SecureBank debit card.",
+        content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go.",
       },
     ],
   }),
