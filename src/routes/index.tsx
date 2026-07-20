@@ -415,7 +415,15 @@ function ProcessingView() {
           <ProgressRow label="Card activated" status="done" />
         </div>
 
-        <p className="mt-8 flex items-center gap-1.5 text-xs text-slate-500">
+        <Link
+          to="/my-card"
+          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 transition active:scale-[0.98]"
+        >
+          <CreditCard className="h-4 w-4" />
+          View my card
+        </Link>
+
+        <p className="mt-6 flex items-center gap-1.5 text-xs text-slate-500">
           <ShieldCheck className="h-3 w-3 text-emerald-400" />
           You're all set — enjoy your new card
         </p>
