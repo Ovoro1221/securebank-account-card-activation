@@ -38,6 +38,12 @@ interface CardDetails {
 }
 
 function Activation() {
+  const navigate = useNavigate();
+  const status = useSyncExternalStore(
+    subscribe,
+    () => getStatus(),
+    () => "idle" as const,
+  );
   const [step, setStep] = useState<Step>("details");
   const [details, setDetails] = useState<CardDetails>({
     cardNumber: "",
@@ -47,6 +53,14 @@ function Activation() {
   });
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
+
+  // If activation is already in progress or done, redirect to My Card page.
+  useEffect(() => {
+    if (status === "processing" || status === "activated") {
+      navigate({ to: "/my-card" });
+    }
+  }, [status, navigate]);
+
 
   const handleDetailsSubmit = (e: FormEvent) => {
     e.preventDefault();
