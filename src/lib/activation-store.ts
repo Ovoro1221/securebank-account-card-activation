@@ -25,15 +25,24 @@ export function setStatus(status: ActivationStatus) {
   window.dispatchEvent(new CustomEvent(EVENT));
 }
 
+let cachedRaw: string | null = null;
+let cachedCard: StoredCard | null = null;
+
 export function getCard(): StoredCard | null {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem(CARD_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as StoredCard;
-  } catch {
+  if (raw === cachedRaw) return cachedCard;
+  cachedRaw = raw;
+  if (!raw) {
+    cachedCard = null;
     return null;
   }
+  try {
+    cachedCard = JSON.parse(raw) as StoredCard;
+  } catch {
+    cachedCard = null;
+  }
+  return cachedCard;
 }
 
 export function setCard(card: StoredCard) {
