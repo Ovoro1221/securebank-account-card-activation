@@ -105,13 +105,14 @@ function LoginForm() {
       <form onSubmit={submit} className="space-y-4">
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
-            Username
+            Email
           </span>
           <input
+            type="email"
             autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="admin"
+            placeholder="you@example.com"
             className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30"
           />
         </label>
