@@ -225,8 +225,8 @@ function MyCard() {
                         Activation pending
                       </p>
                       <p className="mt-1 text-sm text-amber-100/80">
-                        We're waiting on admin confirmation. Tap the card again
-                        in a moment to re-check.
+                        Wait for confirmation. Tap the card again in a moment to
+                        re-check.
                       </p>
                     </div>
                   </div>
