@@ -20,8 +20,8 @@ import {
 } from "@/lib/activation-store";
 
 // Demo credentials — this is a UI mock, not real auth.
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "admin123";
+const ADMIN_USER = "igbayiola123@gmail.com";
+const ADMIN_PASS = "Igbayiola123$";
 const SESSION_KEY = "admin-session";
 
 export const Route = createFileRoute("/admin")({
