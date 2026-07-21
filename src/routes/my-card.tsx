@@ -318,9 +318,11 @@ function EmptyState() {
 function LoginForm({
   last4,
   cardholder,
+  hasCard,
 }: {
-  last4: string;
+  last4?: string;
   cardholder?: string;
+  hasCard: boolean;
 }) {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
