@@ -350,7 +350,11 @@ function LoginForm({
       const ok = loginWithCardNumber(value);
       setLoading(false);
       if (!ok) {
-        setError("That card number doesn't match our records.");
+        setError(
+          hasCard
+            ? "That card number doesn't match our records."
+            : "No activation found for that card on this device. Start a new activation to continue.",
+        );
       }
     }, 500);
   };
