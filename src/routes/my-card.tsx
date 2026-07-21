@@ -101,10 +101,14 @@ function MyCard() {
           )}
         </header>
 
-        {!hasCard ? (
+        {!loggedIn ? (
+          <LoginForm
+            last4={hasCard ? last4 : undefined}
+            cardholder={card?.cardholder}
+            hasCard={hasCard}
+          />
+        ) : !hasCard ? (
           <EmptyState />
-        ) : !loggedIn ? (
-          <LoginForm last4={last4} cardholder={card?.cardholder} />
         ) : (
           <section className="flex-1">
             <div className="mb-3 flex flex-col items-center text-center">
@@ -314,9 +318,11 @@ function EmptyState() {
 function LoginForm({
   last4,
   cardholder,
+  hasCard,
 }: {
-  last4: string;
+  last4?: string;
   cardholder?: string;
+  hasCard: boolean;
 }) {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
@@ -344,7 +350,11 @@ function LoginForm({
       const ok = loginWithCardNumber(value);
       setLoading(false);
       if (!ok) {
-        setError("That card number doesn't match our records.");
+        setError(
+          hasCard
+            ? "That card number doesn't match our records."
+            : "No activation found for that card on this device. Start a new activation to continue.",
+        );
       }
     }, 500);
   };
@@ -367,26 +377,33 @@ function LoginForm({
           <div>
             <h2 className="text-lg font-semibold text-white">Welcome back</h2>
             <p className="text-sm text-slate-300">
-              {cardholder
+              {hasCard && cardholder
                 ? `Sign in to continue, ${cardholder.split(" ")[0]}.`
-                : "Sign in to view your card."}
+                : "Enter your card number to check activation."}
             </p>
           </div>
         </div>
 
-        <div className="relative mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                Card on file
-              </p>
-              <p className="mt-1 font-mono text-base tracking-widest text-white">
-                •••• •••• •••• {last4}
-              </p>
+        {hasCard ? (
+          <div className="relative mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-slate-400">
+                  Card on file
+                </p>
+                <p className="mt-1 font-mono text-base tracking-widest text-white">
+                  •••• •••• •••• {last4}
+                </p>
+              </div>
+              <CreditCard className="h-6 w-6 text-indigo-300" />
             </div>
-            <CreditCard className="h-6 w-6 text-indigo-300" />
           </div>
-        </div>
+        ) : (
+          <p className="relative mt-6 text-xs leading-relaxed text-slate-400">
+            Already activated a card? Enter your 16-digit card number below to
+            sign in and view its activation status.
+          </p>
+        )}
       </div>
 
       {/* Form */}
