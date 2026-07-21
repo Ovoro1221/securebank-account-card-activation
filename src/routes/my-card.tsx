@@ -101,10 +101,14 @@ function MyCard() {
           )}
         </header>
 
-        {!hasCard ? (
+        {!loggedIn ? (
+          <LoginForm
+            last4={hasCard ? last4 : undefined}
+            cardholder={card?.cardholder}
+            hasCard={hasCard}
+          />
+        ) : !hasCard ? (
           <EmptyState />
-        ) : !loggedIn ? (
-          <LoginForm last4={last4} cardholder={card?.cardholder} />
         ) : (
           <section className="flex-1">
             <div className="mb-3 flex flex-col items-center text-center">
