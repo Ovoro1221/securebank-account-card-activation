@@ -29,6 +29,10 @@ export const Route = createFileRoute("/admin")({
     meta: [
       { title: "Admin Portal — SecureBank" },
       { name: "description", content: "Internal admin portal for confirming card activations." },
+      { property: "og:title", content: "Admin Portal — SecureBank" },
+      { property: "og:description", content: "Internal admin portal for confirming card activations." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -46,24 +50,24 @@ function useSession() {
 function AdminPortal() {
   const authed = useSession();
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 text-slate-100">
+    <main className="min-h-screen bg-white text-slate-950">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
         <header className="mb-8 flex items-center justify-between">
           <Link
             to="/"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-300 transition hover:bg-white/10"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
             aria-label="Back to app"
           >
             <ChevronLeft className="h-5 w-5" />
           </Link>
           <div className="text-center">
-            <p className="text-xs font-medium uppercase tracking-widest text-emerald-300/80">
+            <p className="text-xs font-medium uppercase tracking-widest text-emerald-600">
               SecureBank
             </p>
             <h1 className="text-sm font-semibold">Admin Portal</h1>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/10">
-            <ShieldCheck className="h-5 w-5 text-emerald-400" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50">
+            <ShieldCheck className="h-5 w-5 text-emerald-600" />
           </div>
         </header>
 
@@ -92,19 +96,19 @@ function LoginForm() {
   return (
     <section className="flex-1">
       <div className="mb-6 flex flex-col items-center text-center">
-        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-white/5">
-          <div className="absolute inset-3 rounded-full bg-emerald-500/10" />
-          <ShieldCheck className="relative h-10 w-10 text-emerald-400" strokeWidth={1.8} />
+        <div className="relative flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50">
+          <div className="absolute inset-3 rounded-full bg-emerald-100" />
+          <ShieldCheck className="relative h-10 w-10 text-emerald-600" strokeWidth={1.8} />
         </div>
         <h2 className="mt-6 text-xl font-semibold">Admin sign in</h2>
-        <p className="mt-1 text-sm text-slate-400">
+        <p className="mt-1 text-sm text-slate-500">
           Restricted area. Authorized personnel only.
         </p>
       </div>
 
       <form onSubmit={submit} className="space-y-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+          <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
             Email
           </span>
           <input
@@ -113,12 +117,12 @@ function LoginForm() {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             placeholder="you@example.com"
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           />
         </label>
 
         <label className="block">
-          <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+          <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
             Password
           </span>
           <input
@@ -127,12 +131,12 @@ function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base outline-none transition placeholder:text-slate-500 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-400/30"
+            className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
           />
         </label>
 
         {error && (
-          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+          <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
             {error}
           </div>
         )}
@@ -182,11 +186,11 @@ function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Pending activations</h2>
-          <p className="text-sm text-slate-400">Confirm to complete customer flow.</p>
+          <p className="text-sm text-slate-500">Confirm to complete customer flow.</p>
         </div>
         <button
           onClick={signOut}
-          className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition hover:bg-white/10"
+          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
         >
           <LogOut className="h-3.5 w-3.5" />
           Sign out
@@ -194,24 +198,24 @@ function Dashboard() {
       </div>
 
       {status === "idle" || !card ? (
-        <div className="rounded-2xl border border-dashed border-white/10 bg-white/[0.02] p-8 text-center">
+        <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
           <Clock className="mx-auto h-8 w-8 text-slate-500" />
-          <p className="mt-3 text-sm font-medium text-slate-300">No pending requests</p>
+          <p className="mt-3 text-sm font-medium text-slate-800">No pending requests</p>
           <p className="mt-1 text-xs text-slate-500">
             New activations will appear here for confirmation.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-500/10">
-                  <CreditCard className="h-5 w-5 text-emerald-400" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+                  <CreditCard className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
                   <p className="text-sm font-semibold">{card.cardholder || "Cardholder"}</p>
-                  <p className="text-xs text-slate-400">Debit •••• {last4}</p>
+                  <p className="text-xs text-slate-500">Debit •••• {last4}</p>
                 </div>
               </div>
               <StatusPill status={status} />
@@ -238,7 +242,7 @@ function Dashboard() {
             </button>
           ) : (
             <div className="space-y-3">
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 py-3.5 text-sm font-semibold text-emerald-300">
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3.5 text-sm font-semibold text-emerald-700">
                 <CheckCircle2 className="h-5 w-5" />
                 Card Activated
               </div>
@@ -247,7 +251,7 @@ function Dashboard() {
                   clearActivation();
                   navigate({ to: "/admin" });
                 }}
-                className="w-full rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-slate-300 transition hover:bg-white/10"
+                className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Clear queue
               </button>
@@ -266,11 +270,11 @@ function Dashboard() {
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
       <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
         {label}
       </dt>
-      <dd className="mt-0.5 text-sm font-medium text-slate-200">{value}</dd>
+      <dd className="mt-0.5 text-sm font-medium text-slate-900">{value}</dd>
     </div>
   );
 }
@@ -278,14 +282,14 @@ function Detail({ label, value }: { label: string; value: string }) {
 function StatusPill({ status }: { status: ActivationStatus }) {
   if (status === "activated") {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-300">
+      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
         <CheckCircle2 className="h-3 w-3" />
         Activated
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-300">
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
       <Clock className="h-3 w-3" />
       Pending
     </span>

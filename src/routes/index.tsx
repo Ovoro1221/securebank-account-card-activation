@@ -23,6 +23,8 @@ export const Route = createFileRoute("/")({
         property: "og:description",
         content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Activation,
@@ -132,7 +134,7 @@ function Activation() {
     : "•••• •••• •••• ••••";
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+    <main className="min-h-screen bg-white text-slate-950">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
         {/* Header */}
         <header className="mb-6 flex items-center justify-between">
@@ -142,7 +144,7 @@ function Activation() {
                 setError(null);
                 if (step === "pin") setStep("details");
               }}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-300 transition hover:bg-white/10 disabled:opacity-40"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
               disabled={step === "details"}
               aria-label="Back"
             >
@@ -152,23 +154,23 @@ function Activation() {
             <div className="h-10 w-10" />
           )}
           <div className="text-center">
-            <p className="text-xs font-medium uppercase tracking-widest text-indigo-300/80">
+            <p className="text-xs font-medium uppercase tracking-widest text-indigo-600">
               SecureBank
             </p>
-            <h1 className="text-sm font-semibold text-slate-100">Card Activation</h1>
+            <h1 className="text-sm font-semibold text-slate-950">Card Activation</h1>
           </div>
           <div className="flex items-center gap-1.5">
             <Link
               to="/my-card"
               aria-label="My card"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
             >
               <CreditCard className="h-5 w-5 text-indigo-300" />
             </Link>
             <Link
               to="/admin"
               aria-label="Admin portal"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 transition hover:bg-white/10 active:scale-95"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
             >
               <ShieldCheck className="h-5 w-5 text-emerald-400" />
             </Link>
@@ -184,7 +186,7 @@ function Activation() {
               <div
                 key={s}
                 className={`h-1 flex-1 rounded-full transition-all ${
-                  active ? "bg-indigo-400" : "bg-white/10"
+                  active ? "bg-indigo-500" : "bg-slate-200"
                 }`}
               />
             );
@@ -248,7 +250,7 @@ function Activation() {
                         cardNumber: formatCardNumber(e.target.value),
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-3 text-base tracking-wider text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+                  className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-base tracking-wider text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </Field>
@@ -264,7 +266,7 @@ function Activation() {
                       cardholder: e.target.value.toUpperCase(),
                     })
                   }
-                  className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                 />
               </Field>
 
@@ -281,7 +283,7 @@ function Activation() {
                         expiry: formatExpiry(e.target.value),
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </Field>
                 <Field label="CVV">
@@ -298,7 +300,7 @@ function Activation() {
                         cvv: e.target.value.replace(/\D/g, "").slice(0, 3),
                       })
                     }
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-base tracking-widest text-white outline-none transition placeholder:text-slate-500 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+                    className="w-full rounded-xl border border-slate-200 bg-white px-3 py-3 text-base tracking-widest text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </Field>
               </div>
@@ -317,8 +319,8 @@ function Activation() {
                 Your information is encrypted end-to-end
               </p>
 
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4 text-center">
-                <p className="text-sm font-medium text-slate-200">
+              <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+                <p className="text-sm font-medium text-slate-900">
                   Already activated a card?
                 </p>
                 <p className="mt-1 text-xs text-slate-500">
@@ -326,7 +328,7 @@ function Activation() {
                 </p>
                 <Link
                   to="/my-card"
-                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+                  className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
                 >
                   <CreditCard className="h-4 w-4" />
                   Tap to login using Card Number
@@ -359,7 +361,7 @@ function Activation() {
                         document.getElementById(`pin-${i - 1}`)?.focus();
                       }
                     }}
-                    className="h-16 w-14 rounded-xl border border-white/10 bg-white/5 text-center text-2xl font-bold text-white outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+                    className="h-16 w-14 rounded-xl border border-slate-200 bg-white text-center text-2xl font-bold text-slate-950 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   />
                 ))}
               </div>
@@ -434,7 +436,7 @@ function ProcessingView() {
           <CheckCircle2 className="relative h-16 w-16 text-emerald-400" strokeWidth={2} />
         </div>
 
-        <h2 className="mt-8 text-2xl font-semibold text-white">Card Activated</h2>
+        <h2 className="mt-8 text-2xl font-semibold text-slate-950">Card Activated</h2>
         <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
           Your debit card has been successfully activated and is ready to use.
         </p>
@@ -470,7 +472,7 @@ function ProcessingView() {
         <Loader2 className="relative h-14 w-14 animate-spin text-indigo-300" />
       </div>
 
-      <h2 className="mt-8 text-xl font-semibold text-white">
+      <h2 className="mt-8 text-xl font-semibold text-slate-950">
         Card Activation In Process…
       </h2>
       <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
@@ -488,7 +490,7 @@ function ProcessingView() {
 
       <Link
         to="/my-card"
-        className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+        className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
       >
         <CreditCard className="h-4 w-4" />
         Tap my card to check status
@@ -510,14 +512,14 @@ function ProgressRow({
   status: "done" | "active" | "pending";
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-2.5">
+    <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
       <div
         className={`flex h-6 w-6 items-center justify-center rounded-full ${
           status === "done"
             ? "bg-emerald-500/20 text-emerald-400"
             : status === "active"
               ? "bg-indigo-500/20 text-indigo-300"
-              : "bg-white/5 text-slate-500"
+              : "bg-slate-200 text-slate-500"
         }`}
       >
         {status === "done" ? (
@@ -536,7 +538,7 @@ function ProgressRow({
       </div>
       <span
         className={`text-sm ${
-          status === "pending" ? "text-slate-500" : "text-slate-200"
+          status === "pending" ? "text-slate-500" : "text-slate-800"
         }`}
       >
         {label}
