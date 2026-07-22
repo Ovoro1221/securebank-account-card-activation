@@ -77,18 +77,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Activate Your Debit Card — SecureBank" },
-      { name: "description", content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Activate Your Debit Card — SecureBank" },
-      { property: "og:description", content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Activate Your Debit Card — SecureBank" },
-      { name: "twitter:description", content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4794b69d-587f-4959-a6bc-d0e4ffc78fbd/id-preview-b18bdd2c--f09c70f9-71d3-43ce-816e-67087d7bda9d.lovable.app-1784582910970.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4794b69d-587f-4959-a6bc-d0e4ffc78fbd/id-preview-b18bdd2c--f09c70f9-71d3-43ce-816e-67087d7bda9d.lovable.app-1784582910970.png" },
     ],
     links: [
       {

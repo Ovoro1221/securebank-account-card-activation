@@ -39,6 +39,8 @@ export const Route = createFileRoute("/my-card")({
         property: "og:description",
         content: "Tap your card to reveal its activation status.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: MyCard,
@@ -430,7 +432,7 @@ function LoginForm({
         {error && (
           <div
             role="alert"
-            className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200"
+            className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
           >
             {error}
           </div>
