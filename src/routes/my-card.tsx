@@ -67,18 +67,18 @@ function MyCard() {
   const last4 = card?.cardNumber.replace(/\s/g, "").slice(-4) ?? "••••";
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-slate-100">
+    <main className="min-h-screen bg-white text-slate-950">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
         <header className="mb-8 flex items-center justify-between">
           <Link
             to="/"
             aria-label="Back"
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-300 transition hover:bg-white/10"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <ChevronLeft className="h-5 w-5" />
           </Link>
           <div className="text-center">
-            <p className="text-xs font-medium uppercase tracking-widest text-indigo-300/80">
+            <p className="text-xs font-medium uppercase tracking-widest text-indigo-600">
               SecureBank
             </p>
             <h1 className="text-sm font-semibold">My Card</h1>
@@ -92,7 +92,7 @@ function MyCard() {
               }}
               aria-label="Log out"
               title="Log out"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-slate-300 transition hover:bg-rose-500/20 hover:text-rose-300"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-rose-50 hover:text-rose-600"
             >
               <LogOut className="h-5 w-5" />
             </button>
@@ -115,7 +115,7 @@ function MyCard() {
               <h2 className="text-xl font-semibold">
                 {flipped ? "Activation status" : "Tap your card"}
               </h2>
-              <p className="mt-1 max-w-xs text-sm text-slate-400">
+              <p className="mt-1 max-w-xs text-sm text-slate-500">
                 {flipped
                   ? "Here's the current status of your debit card."
                   : "Tap the card below to check if it has been activated."}
@@ -178,7 +178,7 @@ function MyCard() {
                   </div>
 
                   {!flipped && (
-                    <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 backdrop-blur">
+                  <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-1 rounded-full bg-slate-950/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 backdrop-blur">
                       <Hand className="h-3 w-3" />
                       Tap
                     </div>
@@ -190,7 +190,7 @@ function MyCard() {
                   className={`absolute inset-0 rounded-2xl p-5 shadow-2xl [backface-visibility:hidden] [transform:rotateY(180deg)] ${
                     activated
                       ? "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 shadow-emerald-900/50"
-                      : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 shadow-black/50"
+                       : "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 shadow-slate-400/50"
                   }`}
                 >
                   <div className="flex h-full flex-col items-center justify-center text-center text-white">
@@ -229,16 +229,16 @@ function MyCard() {
             {/* Status detail */}
             <div className="mt-8">
               {activated ? (
-                <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20">
-                      <Sparkles className="h-5 w-5 text-emerald-300" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-100">
+                      <Sparkles className="h-5 w-5 text-emerald-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-emerald-200">
+                      <p className="text-sm font-semibold text-emerald-800">
                         Your card is active
                       </p>
-                      <p className="mt-1 text-sm text-emerald-100/80">
+                      <p className="mt-1 text-sm text-emerald-700">
                         You can now use your SecureBank debit card for purchases
                         and ATM withdrawals.
                       </p>
@@ -246,16 +246,16 @@ function MyCard() {
                   </div>
                 </div>
               ) : (
-                <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-500/20">
-                      <Clock className="h-5 w-5 text-amber-300" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-amber-100">
+                      <Clock className="h-5 w-5 text-amber-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-amber-200">
+                      <p className="text-sm font-semibold text-amber-800">
                         Activation pending
                       </p>
-                      <p className="mt-1 text-sm text-amber-100/80">
+                      <p className="mt-1 text-sm text-amber-700">
                         Wait for confirmation. Tap the card again in a moment to
                         re-check.
                       </p>
@@ -266,7 +266,7 @@ function MyCard() {
 
               <button
                 onClick={() => setFlipped((v) => !v)}
-                className="mt-4 w-full rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+                 className="mt-4 w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
               >
                 {flipped ? "Flip back" : "Tap to check status"}
               </button>
@@ -276,7 +276,7 @@ function MyCard() {
                   logout();
                   setFlipped(false);
                 }}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/20 bg-rose-500/10 py-3 text-sm font-medium text-rose-200 transition hover:bg-rose-500/20 active:scale-[0.98]"
+                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-100 active:scale-[0.98]"
               >
                 <LogOut className="h-4 w-4" />
                 Log out
@@ -297,11 +297,11 @@ function MyCard() {
 function EmptyState() {
   return (
     <section className="flex flex-1 flex-col items-center justify-center text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/5">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
         <CreditCard className="h-10 w-10 text-slate-500" />
       </div>
       <h2 className="mt-6 text-xl font-semibold">No card on file</h2>
-      <p className="mt-2 max-w-xs text-sm text-slate-400">
+      <p className="mt-2 max-w-xs text-sm text-slate-500">
         You haven't submitted a card for activation yet. Start the activation
         flow to add your debit card.
       </p>
@@ -367,16 +367,14 @@ function LoginForm({
   return (
     <section className="flex flex-1 flex-col">
       {/* Hero */}
-      <div className="relative mt-2 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-600/30 via-violet-600/20 to-fuchsia-600/20 p-6 shadow-2xl shadow-indigo-900/30 backdrop-blur">
-        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-fuchsia-500/20 blur-3xl" />
-        <div className="absolute -bottom-16 -left-10 h-40 w-40 rounded-full bg-indigo-500/20 blur-3xl" />
+      <div className="relative mt-2 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-xl shadow-slate-200/70">
         <div className="relative flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 backdrop-blur">
-            <Lock className="h-6 w-6 text-indigo-200" />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
+            <Lock className="h-6 w-6 text-indigo-600" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Welcome back</h2>
-            <p className="text-sm text-slate-300">
+            <h2 className="text-lg font-semibold text-slate-950">Welcome back</h2>
+            <p className="text-sm text-slate-500">
               {hasCard && cardholder
                 ? `Sign in to continue, ${cardholder.split(" ")[0]}.`
                 : "Enter your card number to check activation."}
@@ -385,21 +383,21 @@ function LoginForm({
         </div>
 
         {hasCard ? (
-          <div className="relative mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
+          <div className="relative mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400">
+                <p className="text-[10px] uppercase tracking-widest text-slate-500">
                   Card on file
                 </p>
-                <p className="mt-1 font-mono text-base tracking-widest text-white">
+                <p className="mt-1 font-mono text-base tracking-widest text-slate-950">
                   •••• •••• •••• {last4}
                 </p>
               </div>
-              <CreditCard className="h-6 w-6 text-indigo-300" />
+              <CreditCard className="h-6 w-6 text-indigo-600" />
             </div>
           </div>
         ) : (
-          <p className="relative mt-6 text-xs leading-relaxed text-slate-400">
+          <p className="relative mt-6 text-xs leading-relaxed text-slate-500">
             Already activated a card? Enter your 16-digit card number below to
             sign in and view its activation status.
           </p>
@@ -411,7 +409,7 @@ function LoginForm({
         <div>
           <label
             htmlFor="cardNumber"
-            className="mb-2 block text-xs font-medium uppercase tracking-wider text-slate-400"
+             className="mb-2 block text-xs font-medium uppercase tracking-wider text-slate-500"
           >
             Card number
           </label>
@@ -424,7 +422,7 @@ function LoginForm({
               placeholder="1234 5678 9012 3456"
               value={value}
               onChange={(e) => setValue(formatCard(e.target.value))}
-              className="w-full rounded-xl border border-white/10 bg-white/5 py-3.5 pl-12 pr-4 font-mono text-base tracking-widest text-white placeholder:text-slate-600 focus:border-indigo-400/60 focus:outline-none focus:ring-2 focus:ring-indigo-400/30"
+               className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 font-mono text-base tracking-widest text-slate-950 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
         </div>
@@ -448,15 +446,15 @@ function LoginForm({
         </button>
       </form>
 
-      <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4 text-center">
-        <p className="text-sm font-medium text-slate-200">New card to activate?</p>
+       <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+        <p className="text-sm font-medium text-slate-900">New card to activate?</p>
         <p className="mt-1 text-xs text-slate-500">
           Start a fresh activation if this isn't your card.
         </p>
         <button
           type="button"
           onClick={startNewActivation}
-          className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-white/10 active:scale-[0.98]"
+           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
         >
           <RefreshCcw className="h-4 w-4" />
           Start a new activation
