@@ -85,22 +85,31 @@ function MyCard() {
             </p>
             <h1 className="text-sm font-semibold">My Card</h1>
           </div>
-          {hasCard && loggedIn ? (
-            <button
-              type="button"
-              onClick={() => {
-                logout();
-                setFlipped(false);
-              }}
-              aria-label="Log out"
-              title="Log out"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-rose-50 hover:text-rose-600"
+          <div className="flex items-center gap-1.5">
+            <Link
+              to="/admin"
+              aria-label="Admin portal"
+              title="Admin portal"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
             >
-              <LogOut className="h-5 w-5" />
-            </button>
-          ) : (
-            <div className="h-10 w-10" />
-          )}
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
+            </Link>
+            {hasCard && loggedIn && (
+              <button
+                type="button"
+                onClick={() => {
+                  logout();
+                  setFlipped(false);
+                }}
+                aria-label="Log out"
+                title="Log out"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-rose-50 hover:text-rose-600"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+
         </header>
 
         {!loggedIn ? (
