@@ -14,7 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activations: {
+        Row: {
+          card_number: string
+          cardholder: string
+          expiry: string
+          id: string
+          status: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          card_number: string
+          cardholder: string
+          expiry: string
+          id?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          card_number?: string
+          cardholder?: string
+          expiry?: string
+          id?: string
+          status?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
