@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import {
   ChevronLeft,
   CheckCircle2,
@@ -11,19 +11,16 @@ import {
   LogOut,
   LogIn,
   Lock,
-  RefreshCcw,
 } from "lucide-react";
 import {
-  getCard,
-  getStatus,
-  subscribe,
-  isLoggedIn,
-  logout,
-  loginWithCardNumber,
-  clearActivation,
-  type ActivationStatus,
-  type StoredCard,
-} from "@/lib/activation-store";
+  getActivationByCard,
+  getSessionCardNumber,
+  setSessionCardNumber,
+  clearSession,
+  subscribeSession,
+  subscribeToActivations,
+  type Activation,
+} from "@/lib/activations";
 
 export const Route = createFileRoute("/my-card")({
   head: () => ({
@@ -46,27 +43,49 @@ export const Route = createFileRoute("/my-card")({
   component: MyCard,
 });
 
-function MyCard() {
-  const card = useSyncExternalStore<StoredCard | null>(
-    subscribe,
-    () => getCard(),
+function useSessionCard() {
+  return useSyncExternalStore(
+    subscribeSession,
+    () => getSessionCardNumber(),
     () => null,
   );
-  const status = useSyncExternalStore<ActivationStatus>(
-    subscribe,
-    () => getStatus(),
-    () => "idle" as ActivationStatus,
-  );
-  const loggedIn = useSyncExternalStore<boolean>(
-    subscribe,
-    () => isLoggedIn(),
-    () => false,
-  );
+}
+
+function MyCard() {
+  const sessionCard = useSessionCard();
+  const [activation, setActivation] = useState<Activation | null>(null);
+  const [loading, setLoading] = useState(false);
   const [flipped, setFlipped] = useState(false);
 
-  const activated = status === "activated";
-  const hasCard = !!card;
-  const last4 = card?.cardNumber.replace(/\s/g, "").slice(-4) ?? "••••";
+  // Fetch activation for the current session card + subscribe to realtime.
+  useEffect(() => {
+    if (!sessionCard) {
+      setActivation(null);
+      return;
+    }
+    let cancelled = false;
+    const refresh = () => {
+      setLoading(true);
+      getActivationByCard(sessionCard)
+        .then((row) => {
+          if (!cancelled) setActivation(row);
+        })
+        .catch((err) => console.error(err))
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    };
+    refresh();
+    const unsub = subscribeToActivations(refresh);
+    return () => {
+      cancelled = true;
+      unsub();
+    };
+  }, [sessionCard]);
+
+  const loggedIn = !!sessionCard && !!activation;
+  const activated = activation?.status === "activated";
+  const last4 = activation?.card_number.slice(-4) ?? "••••";
 
   return (
     <main className="min-h-screen bg-white text-slate-950">
@@ -94,11 +113,11 @@ function MyCard() {
             >
               <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </Link>
-            {hasCard && loggedIn && (
+            {loggedIn && (
               <button
                 type="button"
                 onClick={() => {
-                  logout();
+                  clearSession();
                   setFlipped(false);
                 }}
                 aria-label="Log out"
@@ -109,17 +128,10 @@ function MyCard() {
               </button>
             )}
           </div>
-
         </header>
 
         {!loggedIn ? (
-          <LoginForm
-            last4={hasCard ? last4 : undefined}
-            cardholder={card?.cardholder}
-            hasCard={hasCard}
-          />
-        ) : !hasCard ? (
-          <EmptyState />
+          <LoginForm loading={loading && !!sessionCard} />
         ) : (
           <section className="flex-1">
             <div className="mb-3 flex flex-col items-center text-center">
@@ -133,15 +145,12 @@ function MyCard() {
               </p>
             </div>
 
-            {/* Flippable card */}
             <div
               className="mx-auto mt-6 aspect-[1.6/1] w-full [perspective:1200px]"
               role="button"
               tabIndex={0}
               aria-pressed={flipped}
-              aria-label={
-                flipped ? "Hide activation status" : "Reveal activation status"
-              }
+              aria-label={flipped ? "Hide activation status" : "Reveal activation status"}
               onClick={() => setFlipped((v) => !v)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -155,14 +164,11 @@ function MyCard() {
                   flipped ? "[transform:rotateY(180deg)]" : ""
                 }`}
               >
-                {/* Front */}
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 p-5 shadow-2xl shadow-indigo-900/50 [backface-visibility:hidden]">
                   <div className="flex h-full flex-col justify-between text-white">
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="text-xs uppercase tracking-widest opacity-80">
-                          Debit
-                        </p>
+                        <p className="text-xs uppercase tracking-widest opacity-80">Debit</p>
                         <p className="mt-1 text-lg font-semibold">SecureBank</p>
                       </div>
                       <div className="h-8 w-10 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 opacity-90" />
@@ -175,33 +181,31 @@ function MyCard() {
                         <div>
                           <p className="opacity-70">Cardholder</p>
                           <p className="mt-0.5 text-sm font-medium">
-                            {card?.cardholder || "YOUR NAME"}
+                            {activation?.cardholder || "YOUR NAME"}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="opacity-70">Expires</p>
                           <p className="mt-0.5 text-sm font-medium">
-                            {card?.expiry || "MM/YY"}
+                            {activation?.expiry || "MM/YY"}
                           </p>
                         </div>
                       </div>
                     </div>
                   </div>
-
                   {!flipped && (
-                  <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-1 rounded-full bg-slate-950/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 backdrop-blur">
+                    <div className="pointer-events-none absolute bottom-3 right-4 flex items-center gap-1 rounded-full bg-slate-950/25 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-white/90 backdrop-blur">
                       <Hand className="h-3 w-3" />
                       Tap
                     </div>
                   )}
                 </div>
 
-                {/* Back */}
                 <div
                   className={`absolute inset-0 rounded-2xl p-5 shadow-2xl [backface-visibility:hidden] [transform:rotateY(180deg)] ${
                     activated
                       ? "bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-700 shadow-emerald-900/50"
-                       : "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 shadow-slate-400/50"
+                      : "bg-gradient-to-br from-slate-600 via-slate-700 to-slate-800 shadow-slate-400/50"
                   }`}
                 >
                   <div className="flex h-full flex-col items-center justify-center text-center text-white">
@@ -209,14 +213,9 @@ function MyCard() {
                       <>
                         <div className="relative flex h-16 w-16 items-center justify-center">
                           <div className="absolute inset-0 rounded-full bg-white/15" />
-                          <CheckCircle2
-                            className="relative h-10 w-10"
-                            strokeWidth={2}
-                          />
+                          <CheckCircle2 className="relative h-10 w-10" strokeWidth={2} />
                         </div>
-                        <p className="mt-3 text-lg font-semibold">
-                          Card Activated
-                        </p>
+                        <p className="mt-3 text-lg font-semibold">Card Activated</p>
                         <p className="mt-1 text-xs opacity-90">
                           •••• {last4} · ready to use
                         </p>
@@ -227,9 +226,7 @@ function MyCard() {
                           <div className="absolute inset-0 animate-ping rounded-full bg-white/10" />
                           <Clock className="relative h-10 w-10 text-amber-300" />
                         </div>
-                        <p className="mt-3 text-lg font-semibold">
-                          Awaiting Activation
-                        </p>
+                        <p className="mt-3 text-lg font-semibold">Awaiting Activation</p>
                       </>
                     )}
                   </div>
@@ -237,7 +234,6 @@ function MyCard() {
               </div>
             </div>
 
-            {/* Status detail */}
             <div className="mt-8">
               {activated ? (
                 <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5">
@@ -250,8 +246,8 @@ function MyCard() {
                         Your card is active
                       </p>
                       <p className="mt-1 text-sm text-emerald-700">
-                        You can now use your SecureBank debit card for purchases
-                        and ATM withdrawals.
+                        You can now use your SecureBank debit card for purchases and ATM
+                        withdrawals.
                       </p>
                     </div>
                   </div>
@@ -267,8 +263,7 @@ function MyCard() {
                         Activation pending
                       </p>
                       <p className="mt-1 text-sm text-amber-700">
-                        Wait for confirmation. Tap the card again in a moment to
-                        re-check.
+                        Wait for confirmation. Tap the card again in a moment to re-check.
                       </p>
                     </div>
                   </div>
@@ -277,17 +272,17 @@ function MyCard() {
 
               <button
                 onClick={() => setFlipped((v) => !v)}
-                 className="mt-4 w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
+                className="mt-4 w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
               >
                 {flipped ? "Flip back" : "Tap to check status"}
               </button>
 
               <button
                 onClick={() => {
-                  logout();
+                  clearSession();
                   setFlipped(false);
                 }}
-                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-100 active:scale-[0.98]"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 py-3 text-sm font-medium text-rose-700 transition hover:bg-rose-100 active:scale-[0.98]"
               >
                 <LogOut className="h-4 w-4" />
                 Log out
@@ -295,7 +290,7 @@ function MyCard() {
             </div>
 
             <p className="mt-8 flex items-center justify-center gap-1.5 text-xs text-slate-500">
-              <ShieldCheck className="h-3 w-3 text-emerald-400" />
+              <ShieldCheck className="h-3 w-3 text-emerald-500" />
               Secure activation status
             </p>
           </section>
@@ -305,40 +300,11 @@ function MyCard() {
   );
 }
 
-function EmptyState() {
-  return (
-    <section className="flex flex-1 flex-col items-center justify-center text-center">
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-slate-100">
-        <CreditCard className="h-10 w-10 text-slate-500" />
-      </div>
-      <h2 className="mt-6 text-xl font-semibold">No card on file</h2>
-      <p className="mt-2 max-w-xs text-sm text-slate-500">
-        You haven't submitted a card for activation yet. Start the activation
-        flow to add your debit card.
-      </p>
-      <Link
-        to="/"
-        className="mt-6 inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]"
-      >
-        Activate a card
-      </Link>
-    </section>
-  );
-}
-
-function LoginForm({
-  last4,
-  cardholder,
-  hasCard,
-}: {
-  last4?: string;
-  cardholder?: string;
-  hasCard: boolean;
-}) {
+function LoginForm({ loading }: { loading: boolean }) {
   const navigate = useNavigate();
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   const formatCard = (raw: string) =>
     raw
@@ -347,7 +313,7 @@ function LoginForm({
       .replace(/(.{4})/g, "$1 ")
       .trim();
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
     const digits = value.replace(/\s/g, "");
@@ -355,29 +321,31 @@ function LoginForm({
       setError("Enter your full 16-digit card number.");
       return;
     }
-    setLoading(true);
-    // Small delay to feel intentional
-    setTimeout(() => {
-      const ok = loginWithCardNumber(value);
-      setLoading(false);
-      if (!ok) {
+    setBusy(true);
+    try {
+      const row = await getActivationByCard(digits);
+      if (!row) {
         setError(
-          hasCard
-            ? "That card number doesn't match our records."
-            : "No activation found for that card on this device. Start a new activation to continue.",
+          "No activation found for that card. Start a new activation to continue.",
         );
+        return;
       }
-    }, 500);
+      setSessionCardNumber(digits);
+    } catch (err) {
+      console.error(err);
+      setError("Could not sign you in. Please try again.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const startNewActivation = () => {
-    clearActivation();
+    clearSession();
     navigate({ to: "/" });
   };
 
   return (
     <section className="flex flex-1 flex-col">
-      {/* Hero */}
       <div className="relative mt-2 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50 p-6 shadow-xl shadow-slate-200/70">
         <div className="relative flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm">
@@ -386,41 +354,21 @@ function LoginForm({
           <div>
             <h2 className="text-lg font-semibold text-slate-950">Welcome back</h2>
             <p className="text-sm text-slate-500">
-              {hasCard && cardholder
-                ? `Sign in to continue, ${cardholder.split(" ")[0]}.`
-                : "Enter your card number to check activation."}
+              Enter your card number to check activation.
             </p>
           </div>
         </div>
-
-        {hasCard ? (
-          <div className="relative mt-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-500">
-                  Card on file
-                </p>
-                <p className="mt-1 font-mono text-base tracking-widest text-slate-950">
-                  •••• •••• •••• {last4}
-                </p>
-              </div>
-              <CreditCard className="h-6 w-6 text-indigo-600" />
-            </div>
-          </div>
-        ) : (
-          <p className="relative mt-6 text-xs leading-relaxed text-slate-500">
-            Already activated a card? Enter your 16-digit card number below to
-            sign in and view its activation status.
-          </p>
-        )}
+        <p className="relative mt-6 text-xs leading-relaxed text-slate-500">
+          Already activated a card? Enter your 16-digit card number below to sign in and
+          view its activation status from any device.
+        </p>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <div>
           <label
             htmlFor="cardNumber"
-             className="mb-2 block text-xs font-medium uppercase tracking-wider text-slate-500"
+            className="mb-2 block text-xs font-medium uppercase tracking-wider text-slate-500"
           >
             Card number
           </label>
@@ -433,7 +381,7 @@ function LoginForm({
               placeholder="1234 5678 9012 3456"
               value={value}
               onChange={(e) => setValue(formatCard(e.target.value))}
-               className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 font-mono text-base tracking-widest text-slate-950 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-12 pr-4 font-mono text-base tracking-widest text-slate-950 shadow-sm placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
         </div>
@@ -449,33 +397,21 @@ function LoginForm({
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={busy || loading}
           className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 transition hover:from-indigo-400 hover:to-violet-500 active:scale-[0.98] disabled:opacity-60"
         >
           <LogIn className="h-4 w-4" />
-          {loading ? "Signing in…" : "Sign in"}
+          {busy ? "Signing in..." : "Sign in to My Card"}
         </button>
-      </form>
 
-       <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
-        <p className="text-sm font-medium text-slate-900">New card to activate?</p>
-        <p className="mt-1 text-xs text-slate-500">
-          Start a fresh activation if this isn't your card.
-        </p>
         <button
           type="button"
           onClick={startNewActivation}
-           className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
+          className="mt-1 w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
         >
-          <RefreshCcw className="h-4 w-4" />
           Start a new activation
         </button>
-      </div>
-
-      <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-slate-500">
-        <ShieldCheck className="h-3 w-3 text-emerald-400" />
-        Your session is protected end-to-end
-      </p>
+      </form>
     </section>
   );
 }
